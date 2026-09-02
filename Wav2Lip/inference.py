@@ -169,10 +169,18 @@ def load_model(path):
 	new_s = {}
 	for k, v in s.items():
 		new_s[k.replace('module.', '')] = v
+	del checkpoint
+	del s
+	import gc
+	gc.collect()
 	model.load_state_dict(new_s)
+	del new_s
+	gc.collect()
 
 	model = model.to(device)
 	return model.eval()
+
+torch.set_grad_enabled(False)
 
 def main():
 	if not os.path.isfile(args.face):

@@ -54,7 +54,8 @@ async def generate_video_async(audio: UploadFile = File(...)):
                 "--face", f"../{face_path}",
                 "--audio", input_audio_path,
                 "--outfile", output_video_path,
-                "--box", "93", "293", "414", "614"
+                "--box", "93", "293", "414", "614",
+                "--wav2lip_batch_size", "16"
             ]
             
             subprocess.run(command, capture_output=True, text=True, check=True, cwd="Wav2Lip")
