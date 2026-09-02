@@ -53,10 +53,11 @@ async def generate_video(audio: UploadFile = File(...)):
         logger.info(f"Inference completed successfully.")
         
     except subprocess.CalledProcessError as e:
+        from fastapi import HTTPException
         logger.error(f"Inference failed with exit code {e.returncode}")
         logger.error(f"STDOUT: {e.stdout}")
         logger.error(f"STDERR: {e.stderr}")
-        return {"error": "Video generation failed", "details": e.stderr}
+        raise HTTPException(status_code=500, detail={"error": "Video generation failed", "stderr": e.stderr})
     finally:
         # Clean up input audio
         if os.path.exists(input_audio_path):

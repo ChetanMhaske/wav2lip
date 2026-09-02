@@ -19,9 +19,9 @@ class SFDDetector(FaceDetector):
 
         # Initialise the face detector
         if not os.path.isfile(path_to_detector):
-            model_weights = load_url(models_urls['s3fd'])
+            model_weights = load_url(models_urls['s3fd'], map_location='cpu')
         else:
-            model_weights = torch.load(path_to_detector)
+            model_weights = torch.load(path_to_detector, map_location='cpu')
 
         self.face_detector = s3fd()
         self.face_detector.load_state_dict(model_weights)
