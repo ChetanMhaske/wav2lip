@@ -40,16 +40,17 @@ async def generate_video(audio: UploadFile = File(...)):
     
     # Run the Wav2Lip inference script
     try:
+        # Run inference from within the Wav2Lip directory so 'temp/temp.wav' path resolves correctly
         command = [
-            "python", "Wav2Lip/inference.py",
-            "--checkpoint_path", "Wav2Lip/checkpoints/wav2lip_gan.pth",
-            "--face", face_path,
+            "python", "inference.py",
+            "--checkpoint_path", "checkpoints/wav2lip_gan.pth",
+            "--face", f"../{face_path}",
             "--audio", input_audio_path,
             "--outfile", output_video_path
         ]
         
         # Use check=True to raise exception on failure
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(command, capture_output=True, text=True, check=True, cwd="Wav2Lip")
         logger.info(f"Inference completed successfully.")
         
     except subprocess.CalledProcessError as e:
