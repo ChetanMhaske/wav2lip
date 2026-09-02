@@ -12,7 +12,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Install CPU-only PyTorch first
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
 # Install Python requirements
 COPY requirements.txt .
@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Download Wav2Lip checkpoint
 RUN mkdir -p /app/Wav2Lip/checkpoints
-RUN wget -q -O /app/Wav2Lip/checkpoints/wav2lip_gan.pth https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth
+RUN wget --progress=dot:giga -O /app/Wav2Lip/checkpoints/wav2lip_gan.pth https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth
 
 # Copy application files
 COPY teacher.jpg .
