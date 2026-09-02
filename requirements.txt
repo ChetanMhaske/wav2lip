@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+librosa==0.9.2
+numba
+resampy
+scipy
+python_speech_features
+opencv-contrib-python
+python-multipart
+tqdm
