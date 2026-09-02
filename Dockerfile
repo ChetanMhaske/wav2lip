@@ -9,10 +9,11 @@ RUN apt-get update && \
     wget \
     libgl1 \
     libglib2.0-0 \
+    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install CPU-only PyTorch first
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Install Python requirements
 COPY requirements.txt .
