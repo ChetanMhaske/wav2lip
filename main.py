@@ -27,6 +27,8 @@ import threading
 
 JOBS = {}
 
+inference_lock = threading.Lock()
+
 @app.post("/generate-async")
 async def generate_video_async(audio: UploadFile = File(...)):
     # Save the incoming audio file
@@ -45,34 +47,36 @@ async def generate_video_async(audio: UploadFile = File(...)):
     JOBS[job_id] = {"status": "processing", "video_path": None, "error": None}
     
     def run_inference():
-        logger.info(f"Running Wav2Lip inference for {audio.filename}...")
-        try:
-            # Run inference from within the Wav2Lip directory so 'temp/temp.wav' path resolves correctly
-            command = [
-                "python", "inference.py",
-                "--checkpoint_path", "checkpoints/wav2lip_gan.pth",
-                "--face", f"../{face_path}",
-                "--audio", input_audio_path,
-                "--outfile", output_video_path,
-                "--box", "93", "293", "414", "614",
-                "--wav2lip_batch_size", "16"
-            ]
-            
-            subprocess.run(command, capture_output=True, text=True, check=True, cwd="Wav2Lip")
-            logger.info(f"Inference completed successfully.")
-            JOBS[job_id]["status"] = "completed"
-            JOBS[job_id]["video_path"] = output_video_path
-            
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Inference failed with exit code {e.returncode}")
-            logger.error(f"STDOUT: {e.stdout}")
-            logger.error(f"STDERR: {e.stderr}")
-            JOBS[job_id]["status"] = "failed"
-            JOBS[job_id]["error"] = e.stderr
-        finally:
-            # Clean up input audio
-            if os.path.exists(input_audio_path):
-                os.remove(input_audio_path)
+        logger.info(f"Job {job_id} waiting for GPU/CPU lock...")
+        with inference_lock:
+            logger.info(f"Running Wav2Lip inference for {audio.filename}...")
+            try:
+                # Run inference from within the Wav2Lip directory so 'temp/temp.wav' path resolves correctly
+                command = [
+                    "python", "inference.py",
+                    "--checkpoint_path", "checkpoints/wav2lip_gan.pth",
+                    "--face", f"../{face_path}",
+                    "--audio", input_audio_path,
+                    "--outfile", output_video_path,
+                    "--box", "93", "293", "414", "614",
+                    "--wav2lip_batch_size", "16"
+                ]
+                
+                subprocess.run(command, capture_output=True, text=True, check=True, cwd="Wav2Lip")
+                logger.info(f"Inference completed successfully.")
+                JOBS[job_id]["status"] = "completed"
+                JOBS[job_id]["video_path"] = output_video_path
+                
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Inference failed with exit code {e.returncode}")
+                logger.error(f"STDOUT: {e.stdout}")
+                logger.error(f"STDERR: {e.stderr}")
+                JOBS[job_id]["status"] = "failed"
+                JOBS[job_id]["error"] = e.stderr
+            finally:
+                # Clean up input audio
+                if os.path.exists(input_audio_path):
+                    os.remove(input_audio_path)
 
     thread = threading.Thread(target=run_inference)
     thread.start()
